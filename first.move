@@ -21,9 +21,7 @@ module my_addrx::UpvoteGame{
     }
     public fun initialise_proposals(account: &signer){
         assert!(signer::address_of(account)==@my_addrx,0);
-        if(!exists<Proposals>(@my_addrx)){
-            move_to<Proposals>(account,Proposals{proposals: vector::empty<Proposal>()});
-        };
+        move_to<Proposals>(account,Proposals{proposals: vector::empty<Proposal>()});
     }
     fun coin_address<CoinType>(): address {
        let type_info = type_info::type_of<CoinType>();
@@ -56,7 +54,7 @@ module my_addrx::UpvoteGame{
         };
         value
     }
-    fun distribution(id:u64)acquires Proposals{
+    fun distribution(id:u64)acquires Proposals, Wallet{
         let oldlist= borrow_global_mut<Proposals>(@my_addrx);
         let n=vector::length<Proposal>(&oldlist.proposals);
         let to_winner=0;
@@ -65,11 +63,15 @@ module my_addrx::UpvoteGame{
             let inc_prop=&mut vector::borrow_mut<Proposal>(&mut oldlist.proposals, n-1).upvotes;
             if(id==n-1){
                 to_winner=to_winner+*inc_prop/2;
+                to_dapp=to_dapp-*inc_prop/2;
             };
             to_winner=to_winner+*inc_prop/2;
             to_dapp=to_dapp+*inc_prop/2;
-            vector::pop_back(&mut oldlist.proposals);
+            *inc_prop=0;
             n=n-1;
         };
+        let inc_prop=&mut vector::borrow_mut<Proposal>(&mut oldlist.proposals, id).proposer;
+        let winner=&mut borrow_global_mut<Wallet>(*inc_prop).coins;
+        *winner=*winner+to_winner;
     }
 }
