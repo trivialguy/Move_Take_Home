@@ -42,6 +42,7 @@ module my_addrx::UpvoteGame{
         new_proposal
     }
     public fun upvote_proposal(proposal:&Proposal, value:u64,account: &signer):u64 acquires Wallet, Proposals{
+        assert!(exists<Proposals>(@my_addrx),1);
         let addr=signer::address_of(account);
         assert!(proposal.proposer!=addr,2);
         assert!(borrow_global<Wallet>(addr).coins>=value,3);
