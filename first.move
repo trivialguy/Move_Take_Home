@@ -10,7 +10,7 @@ module my_addrx::UpvoteGame{
     struct Wallet has key, store{
         coins:u64,
     }
-    struct Proposal has store,copy,drop,key{
+    struct Proposal has store,copy,drop{
         name:vector<u8>,
         proposer:address,
         upvotes:u64,
@@ -19,9 +19,11 @@ module my_addrx::UpvoteGame{
     struct Proposals has key, store{
         proposals:vector<Proposal>,
     }
-    public fun initialise_proposals(account: &signer){
+    #[view]
+    public fun initialise_proposals(account: &signer):bool{
         assert!(signer::address_of(account)==@my_addrx,0);
         move_to<Proposals>(account,Proposals{proposals: vector::empty<Proposal>()});
+        true
     }
     fun coin_address<CoinType>(): address {
        let type_info = type_info::type_of<CoinType>();
@@ -73,5 +75,11 @@ module my_addrx::UpvoteGame{
         let inc_prop=&mut vector::borrow_mut<Proposal>(&mut oldlist.proposals, id).proposer;
         let winner=&mut borrow_global_mut<Wallet>(*inc_prop).coins;
         *winner=*winner+to_winner;
+    }
+
+    #[test(a = @0x42)]
+    fun testing(a:signer)
+    {
+        initialise_proposals(&a);
     }
 }
