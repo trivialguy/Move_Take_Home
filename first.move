@@ -76,6 +76,14 @@ module my_addrx::UpvoteGame{
         let winner=&mut borrow_global_mut<Wallet>(*inc_prop).coins;
         *winner=*winner+to_winner;
     }
+    public fun cashout<CoinType>(account: &signer, receiver: address, value: u64)acquires Wallet{
+        assert!(signer::address_of(account)==@my_addrx,0);
+        assert!(exists<Proposals>(receiver),1);
+        let withdrawer=&mut borrow_global_mut<Wallet>(receiver).coins;
+        assert!(*withdrawer>=value,4);
+        *withdrawer=*withdrawer-value;
+        coin::transfer<CoinType>(account, receiver,value);
+    }
 
     #[test(a = @0x42)]
     fun testing(a:signer)
